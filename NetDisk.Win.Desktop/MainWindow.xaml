@@ -1,11 +1,67 @@
 ﻿<Controls:MetroWindow x:Class="NetDisk.Win.Desktop.MainWindow"
-                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                      xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
-                      Title="MainWindow"
-                      Height="350"
-                      Width="525">
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="400" Width="600">
+    
+    <Window.Resources>
+        <DataTemplate x:Key="FolderTemplate">
+            <StackPanel Margin="2"
+                        Orientation="Vertical">
+                <TextBlock Text="{Binding file_name}" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding created_at}" Width="10"/>
+            </StackPanel>
+        </DataTemplate>
+        <ResourceDictionary x:Key="Icon">
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Icons.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+        
+    </Window.Resources>
+    
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="8*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="16*"/>
+            <ColumnDefinition Width="16*"/>
+            <ColumnDefinition Width="16*"/>
+            <ColumnDefinition Width="18*"/>
+            <ColumnDefinition Width="5*"/>
+        </Grid.ColumnDefinitions>
+        <TextBox Grid.Row="0" Grid.Column="0" Controls:TextBoxHelper.Watermark="Search" Controls:TextBoxHelper.ClearTextButton="True"
+                 HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                 />
+        <Button Grid.Row="0" Grid.Column="1" Margin="5,2,5,2" Style="{StaticResource AccentedSquareButtonStyle}"
+                >
+            <TextBlock Text="New Folder"/>
+        </Button>
+        <Button Grid.Row="0" Grid.Column="2" Margin="5,2,5,2" Style="{StaticResource AccentedSquareButtonStyle}"
+                >
+            <TextBlock Text="Upload File"/>
+        </Button>
+        <Button Grid.Row="0" Grid.Column="3" Margin="5,2,5,2" Style="{StaticResource AccentedSquareButtonStyle}"
+                >
+            <TextBlock Text="Account Info"/>
+        </Button>
+        <Button Grid.Row="0" Grid.Column="4" 
+                Style="{DynamicResource MetroCircleButtonStyle}">
+            <iconPacks:PackIconModern Width="20"
+                       Height="20"
+                       Kind="Settings" />
+        </Button>
+        <ListView Grid.Row="1" Grid.Column="0" Margin="0,0.5" 
+                  ItemsSource="{Binding Data}"
+                  ItemTemplate="{StaticResource FolderTemplate}"/>
+        <DockPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4">
 
+        </DockPanel>
     </Grid>
 </Controls:MetroWindow>

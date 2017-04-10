@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace NetDisk.Win.Desktop
 {
     /// <summary>
-    /// MainWindow.xaml 的交互逻辑
+    /// SettingWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : MetroWindow
+    public partial class SettingWindow : MetroWindow
     {
-        public MainWindow()
+        public SettingWindow()
         {
             InitializeComponent();
         }

@@ -1,0 +1,41 @@
+﻿<Controls:MetroWindow 
+    x:Class="NetDisk.Win.Desktop.WelcomeWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    mc:Ignorable="d"
+    Height="550" Width="725"
+    Background="WhiteSmoke"
+    GlowBrush="{DynamicResource AccentColorBrush}"
+    WindowStartupLocation="CenterScreen">
+    <Grid Background="WhiteSmoke">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="2.5*"/>
+            <RowDefinition Height="5*"/>
+            <RowDefinition Height="5*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2.2*"/>
+            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="2.2*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="1" Grid.Column="1"
+               x:Name="lbl0" Text="SecuDisk" Foreground="Green"
+               FontSize="70" HorizontalAlignment="Center" FontFamily="Arial Black"
+        />
+        <TextBlock Grid.Row="2" Grid.Column="1"
+        FontSize="50" TextWrapping="Wrap" Text="Your Own Secure Cloud Disk" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+      
+        <Button Grid.Row="3" Grid.Column="1" Margin="120,60,120,40"
+                x:Name="StartBtn" Style="{DynamicResource SquareButtonStyle}"
+                Command="{Binding ShowSettingDialog}">
+            <TextBlock Text="START NOW" FontSize="18"/>
+        </Button>
+        
+    </Grid>
+</Controls:MetroWindow>
