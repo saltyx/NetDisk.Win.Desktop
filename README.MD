@@ -1,4 +1,4 @@
 ## NetDisk Win Desktop
 
-这是SecuDisk的Windows桌面程序
+This is SecuDisk for Windows Desktop
 
