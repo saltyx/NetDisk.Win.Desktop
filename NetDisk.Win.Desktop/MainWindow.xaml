@@ -5,16 +5,82 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="400" Width="600">
+        Title="MainWindow" Height="800" Width="1200"
+        BorderThickness="0" 
+        GlowBrush="Black"
+        ResizeMode="CanResizeWithGrip"
+        WindowTransitionsEnabled="False"
+        WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
         <DataTemplate x:Key="FolderTemplate">
-            <StackPanel Margin="2"
-                        Orientation="Vertical">
-                <TextBlock Text="{Binding file_name}" TextWrapping="Wrap"/>
-                <TextBlock Text="{Binding created_at}" Width="10"/>
-            </StackPanel>
+            <Border>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="0.5*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <iconPacks:PackIconModern Width="auto" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                        Height="auto" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Kind="Folder" />
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" FontSize="30" Text="{Binding file_name}" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" FontStyle="Italic" Foreground="DarkCyan" Text="{Binding created_at}" TextWrapping="Wrap"/>
+                    <Button Width="40" Height="40" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                        Style="{DynamicResource MetroCircleButtonStyle}">
+                        <iconPacks:PackIconModern Width="20"
+                                Height="20"
+                                Kind="Download" />
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="FileTemplate">
+            <Border>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="8*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <iconPacks:PackIconModern Width="auto" Height="auto" Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Kind="Page"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" FontSize="20" TextWrapping="Wrap" Text="{Binding file_name}"
+                               VerticalAlignment="Bottom"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" FontSize="15" Foreground="DarkCyan" Grid.ColumnSpan="3" TextWrapping="Wrap" Text="{Binding updated_at}"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" FontSize="15" Foreground="DarkCyan" Grid.ColumnSpan="3" TextWrapping="Wrap" Text="{Binding file_size}"
+                               VerticalAlignment="Center"/>
+                    <iconPacks:PackIconModern Width="20" Height="20" Grid.Row="0" Grid.Column="2" controls:VisibilityHelper.IsVisible="{Binding is_encrypted}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Kind="Lock"/>
+                    <iconPacks:PackIconModern Width="20" Height="20" Grid.Row="0" Grid.Column="3" controls:VisibilityHelper.IsVisible="{Binding is_shared}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Kind="Share"/>
+                    <Button Width="40" Height="40" Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="2"
+                            VerticalAlignment="Center" HorizontalAlignment="Left"
+                        Style="{DynamicResource MetroCircleButtonStyle}">
+                        <iconPacks:PackIconModern Width="20"
+                                Height="20"
+                                Kind="Download" />
+                    </Button>
+                </Grid>
+            </Border>
         </DataTemplate>
         <ResourceDictionary x:Key="Icon">
             <ResourceDictionary.MergedDictionaries>
@@ -27,7 +93,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="8*"/>
+            <RowDefinition Height="0.5*"/>
+            <RowDefinition Height="9*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="16*"/>
@@ -57,11 +124,22 @@
                        Height="20"
                        Kind="Settings" />
         </Button>
-        <ListView Grid.Row="1" Grid.Column="0" Margin="0,0.5" 
-                  ItemsSource="{Binding Data}"
+        <ListView Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" Margin="0,0.5" 
+                  ItemsSource="{Binding FolderData}"
                   ItemTemplate="{StaticResource FolderTemplate}"/>
-        <DockPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4">
-
-        </DockPanel>
+        <ListBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VerticalAlignment="Center" FontSize="12" FontStyle="Italic"
+                 ItemsSource="{Binding FolderData}">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel IsItemsHost="True" Margin="2"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+        <ListView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
+                  ItemsSource="{Binding FileData}"
+                  ItemTemplate="{StaticResource FileTemplate}">
+            
+        </ListView>
     </Grid>
 </Controls:MetroWindow>

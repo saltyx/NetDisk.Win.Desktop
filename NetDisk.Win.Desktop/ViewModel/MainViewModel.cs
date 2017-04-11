@@ -27,15 +27,23 @@ namespace NetDisk.Win.Desktop.ViewModel
         private async void initData()
         {
             Data = await Utils.NetUtils.GetRoot();
-
-            OnPropertyChanged("Data");
-            
             foreach(UserFileModel file in Data)
             {
-                Debug.WriteLine("{0} {1}", file.file_name, file.is_folder);
+                if (file.is_folder)
+                {
+                    FolderData.Add(file);
+                } else
+                {
+                    FileData.Add(file);
+                    Debug.WriteLine("file", file.file_name);
+                }
             }
+            OnPropertyChanged("Data");
+            OnPropertyChanged("FolderData");
+            OnPropertyChanged("FileData");
         }
-
+        
+        
 
     }
 }

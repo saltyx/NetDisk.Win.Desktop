@@ -42,6 +42,7 @@ namespace NetDisk.Win.Desktop
                 MainViewModel vm = new MainViewModel();
                 view.DataContext = vm;
                 view.Show();
+                
             }
             
         }
