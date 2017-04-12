@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
@@ -32,13 +33,24 @@
                         Height="auto" HorizontalAlignment="Center" VerticalAlignment="Center"
                         Kind="Folder" />
 
-                    <TextBlock Grid.Row="0" Grid.Column="1" FontSize="30" Text="{Binding file_name}" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" FontSize="30" Text="{Binding file_name}" TextWrapping="Wrap">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction
+                                   Command="{Binding DataContext.ChangeFolder, 
+                                RelativeSource={RelativeSource FindAncestor, 
+                                        AncestorType={x:Type ItemsControl}}}"
+                                    CommandParameter="{Binding}">
+                                </i:InvokeCommandAction>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Row="1" Grid.Column="1" FontStyle="Italic" Foreground="DarkCyan" Text="{Binding created_at}" TextWrapping="Wrap"/>
                     <Button Width="40" Height="40" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
                         Style="{DynamicResource MetroCircleButtonStyle}">
                         <iconPacks:PackIconModern Width="20"
                                 Height="20"
-                                Kind="Download" />
+                                Kind="Settings" />
                     </Button>
                 </Grid>
             </Border>
@@ -124,22 +136,44 @@
                        Height="20"
                        Kind="Settings" />
         </Button>
-        <ListView Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" Margin="0,0.5" 
+        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+            <Button Grid.Row="0" Grid.Column="4" Height="40" Width="40"
+                    Command="{Binding Back}"
+                Style="{DynamicResource MetroCircleButtonStyle}">
+                <iconPacks:PackIconModern Width="20"
+                       Height="20"
+                       Kind="ArrowLeft" />
+            </Button>
+
+        </StackPanel>
+        <ListView Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Margin="0,0.5" 
                   ItemsSource="{Binding FolderData}"
                   ItemTemplate="{StaticResource FolderTemplate}"/>
         <ListBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                 VerticalAlignment="Center" FontSize="12" FontStyle="Italic"
-                 ItemsSource="{Binding FolderData}">
+                 VerticalAlignment="Center" FontStyle="Oblique"
+                 ItemsSource="{Binding NavFolder}">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel IsItemsHost="True" Margin="2"/>
+                    <WrapPanel IsItemsHost="True" Margin="2">
+                    </WrapPanel>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconModern Width="10"
+                                Height="10" VerticalAlignment="Center"
+                                Kind="ArrowRight" /> 
+                            <TextBlock FontSize="15" Text="{Binding Value}"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
         </ListBox>
         <ListView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
                   ItemsSource="{Binding FileData}"
                   ItemTemplate="{StaticResource FileTemplate}">
-            
         </ListView>
     </Grid>
 </Controls:MetroWindow>

@@ -19,10 +19,20 @@ namespace NetDisk.Win.Desktop
     {
         public static string TOKEN;
         public static string URL;
+        
         public static readonly string DB_NAME = "disk.db";
+
+        private static KeyValuePair<int, string> CURRENT_FOLDER;
+        private static Stack<KeyValuePair<int,string>> _folderStack;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            _folderStack = new Stack<KeyValuePair<int, string>>();
+            CURRENT_FOLDER = new KeyValuePair<int, string>(1, "root");
+            _folderStack.Push(CURRENT_FOLDER);
+
             var db = new SQLiteConnection(DB_NAME);
             db.CreateTable<SettingModel>();
             db.CreateTable<UserFileModel>();
@@ -44,7 +54,23 @@ namespace NetDisk.Win.Desktop
                 view.Show();
                 
             }
-            
+        }
+
+        public static void MoveNextFolder(int dst,string folderName)
+        {
+            CURRENT_FOLDER = new KeyValuePair<int, string>(dst, folderName);
+            _folderStack.Push(CURRENT_FOLDER);
+        }
+
+        public static KeyValuePair<int,string> FindPreFolder()
+        {
+            _folderStack.Pop();
+            return CURRENT_FOLDER = _folderStack.Peek();
+        }
+
+        public static KeyValuePair<int,string> GetCurrentFolder()
+        {
+            return CURRENT_FOLDER;
         }
     }
 }
