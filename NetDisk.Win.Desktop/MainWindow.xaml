@@ -185,7 +185,7 @@
 
         <Controls:FlyoutsControl x:Name="SettingViewModel">
             <Controls:Flyout x:Name="Setting" Header="Setting" Position="Right" IsOpen="{Binding IsSettingOpen}"
-                             Width="300"
+                             Width="1200"
                 >
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="URL" Foreground="Wheat" FontSize="25" Margin="8"/>

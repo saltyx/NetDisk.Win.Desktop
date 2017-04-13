@@ -171,6 +171,7 @@ namespace NetDisk.Win.Desktop.ViewModel
 
         private async void initData()
         {
+            App.InitData();
             Data = await Utils.NetUtils.GetRoot();
             NavFolder.Clear();
             NavFolder.Add(App.GetCurrentFolder());
@@ -274,7 +275,7 @@ namespace NetDisk.Win.Desktop.ViewModel
             controller = await ((MetroWindow)Application.Current.MainWindow).ShowProgressAsync("Please wait...", "Refreshing", settings: mSetting);
             controller.SetIndeterminate();
             controller.SetCancelable(false);
-            initData();
+            initData(); 
             await controller.CloseAsync();
         }
     }

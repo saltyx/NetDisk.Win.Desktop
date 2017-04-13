@@ -72,5 +72,12 @@ namespace NetDisk.Win.Desktop
         {
             return CURRENT_FOLDER;
         }
+
+        public static void InitData()
+        {
+            _folderStack.Clear();
+            CURRENT_FOLDER = new KeyValuePair<int, string>(1, "root");
+            _folderStack.Push(CURRENT_FOLDER);
+        }
     }
 }
