@@ -203,6 +203,11 @@ namespace NetDisk.Win.Desktop.ViewModel
                 }
                 return "Name: " + _choosenFile.file_name;
             }
+            set
+            {
+                _choosenFile.file_name = value;
+                OnPropertyChanged("ChoosenFolderName");
+            }
         }
 
         public bool IsDetailedInfoOpen
@@ -406,10 +411,13 @@ namespace NetDisk.Win.Desktop.ViewModel
 
         private void showDetailedFolder(UserFileModel file)
         {
-            _choosenFile = file;
+            ChoosenFile = file;
+            log(file.is_encrypted);
             IsDetailedInfoOpen = true;
+            _canceled = true;
+            ChoosenFileEncryptionState = file.is_encrypted;
             OnPropertyChanged("ChoosenFolderName");
-           
+            OnPropertyChanged("ChoosenFile");
         }
 
         private async void encrypt()
@@ -427,6 +435,15 @@ namespace NetDisk.Win.Desktop.ViewModel
                 _canceled = true;
                 ChoosenFileEncryptionState = false;
                 return;
+            }
+            bool feedback = await Utils.NetUtils.encryptFolder(_choosenFile.id, result);
+            if (feedback)
+            {
+                _choosenFile.is_encrypted = true;
+                IsDetailedInfoOpen = false;
+            } else
+            {
+                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ERROR", "An error occurred");
             }
         }
 
@@ -446,6 +463,15 @@ namespace NetDisk.Win.Desktop.ViewModel
                 ChoosenFileEncryptionState = true;
                 return;
             }
+            bool feedback = await Utils.NetUtils.decryptFolder(_choosenFile.id, result);
+            if (feedback)
+            {
+                _choosenFile.is_encrypted = false;
+                IsDetailedInfoOpen = false;
+            } else
+            {
+                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ERROR", "An error occurred");
+            }
         }
 
         private async void rename()
@@ -454,6 +480,12 @@ namespace NetDisk.Win.Desktop.ViewModel
                 .ShowInputAsync("Please input the new name", "");
             if (result == null || result.Length == 0)
                 return;
+            var feedback = await Utils.NetUtils.renameFolder(_choosenFile.id, result);
+            if (feedback)
+            {
+                ChoosenFolderName = result;
+                refresh();
+            }
         }
 
         private async void delete()
@@ -462,8 +494,29 @@ namespace NetDisk.Win.Desktop.ViewModel
                 .ShowMessageAsync("Delete the folder?", "You are trying to delete "+ChoosenFile.file_name, MessageDialogStyle.AffirmativeAndNegative);
             
             if ("Affirmative".Equals(msg.ToString())) {
-                IsDetailedInfoOpen = false;
+                bool result = await Utils.NetUtils.deleteFolder(_choosenFile.id);
+                if (result)
+                {
+                    IsDetailedInfoOpen = false;
+                    refresh();
+                } else
+                {
+                    await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ERROR","An error occurred");
+                }
+
             }
+        }
+
+        private async void refresh()
+        {
+            int id = NavFolder.Last().Key;
+            Data = await Utils.NetUtils.GetFilesAndFoldersById(id);
+            spliteData();
+        }
+
+        private void log(object obj)
+        {
+            Debug.WriteLine(obj);
         }
     }
 }

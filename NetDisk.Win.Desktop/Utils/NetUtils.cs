@@ -88,7 +88,6 @@ namespace NetDisk.Win.Desktop.Utils
             {
                 string content = await result.Content.ReadAsStringAsync();
                 var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
-                Debug.WriteLine(feedback.info, "info");
                 if (feedback.success == 200)
                     return int.Parse(feedback.info);
                 return -1;
@@ -96,6 +95,121 @@ namespace NetDisk.Win.Desktop.Utils
             {
                 return -1;
             }
+        }
+
+        public static async Task<bool> renameFolder(int id, string newName)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put,
+                String.Format(BASE_FOLDER_URL + "/update"));
+            request.Method = HttpMethod.Put;
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+
+            var data = new FolderParam
+            {
+                folder = new UpdateFolderParam
+                {
+                    new_name = newName,
+                    folder_id = id
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage result = await client.SendAsync(request);
+            if (result.IsSuccessStatusCode)
+            {
+                string content = await result.Content.ReadAsStringAsync();
+                var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
+                if (feedback.success == 200)
+                    return true;
+                return false;
+            }
+            return false;
+        }
+
+        public static async Task<bool> deleteFolder(int id)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete,
+                String.Format(BASE_FOLDER_URL + "/delete"));
+            request.Method = HttpMethod.Delete;
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+
+            var data = new FolderParam
+            {
+                folder = new DeleteFolderParam
+                {
+                    folder_id = id
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage result = await client.SendAsync(request);
+            if (result.IsSuccessStatusCode)
+            {
+                string content = await result.Content.ReadAsStringAsync();
+                var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
+                if (feedback.success == 200)
+                    return true;
+                return false;
+            }
+            return false;
+        }
+
+        public static async Task<bool> encryptFolder(int id, string passPhrase)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post,
+                String.Format(BASE_FOLDER_URL + "/encrypt"));
+            request.Method = HttpMethod.Post;
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+
+            var data = new FolderParam
+            {
+                folder = new EncryptFolderParam
+                {
+                    folder_id = id,
+                    pass_phrase = passPhrase
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage result = await client.SendAsync(request);
+            if (result.IsSuccessStatusCode)
+            {
+                string content = await result.Content.ReadAsStringAsync();
+                var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
+                if (feedback.success == 200)
+                    return true;
+                return false;
+            }
+            return false;
+        }
+
+        public static async Task<bool> decryptFolder(int id, string passPhrase)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post,
+                String.Format(BASE_FOLDER_URL + "/decrypt"));
+            request.Method = HttpMethod.Post;
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+
+            var data = new FolderParam
+            {
+                folder = new EncryptFolderParam
+                {
+                    folder_id = id,
+                    pass_phrase = passPhrase
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage result = await client.SendAsync(request);
+            if (result.IsSuccessStatusCode)
+            {
+                string content = await result.Content.ReadAsStringAsync();
+                var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
+                if (feedback.success == 200)
+                    return true;
+                return false;
+            }
+            return false;
         }
 
         private class SuccessFeedBack
@@ -106,13 +220,32 @@ namespace NetDisk.Win.Desktop.Utils
 
         private class FolderParam
         {
-            public NewFolderParam folder { get; set; }
+            public BaseFolderParam folder { get; set; }
         }
 
-        private class NewFolderParam
+        private class NewFolderParam : BaseFolderParam
         {
             public string folder_name { get; set; }
             public int from_folder { get; set; }
         }
+
+        private class UpdateFolderParam : BaseFolderParam
+        {
+            public string new_name { get; set; }
+            public int folder_id { get; set; }
+        }
+
+        private class DeleteFolderParam : BaseFolderParam
+        {
+            public int folder_id { get; set; }
+        }
+
+        private class EncryptFolderParam : BaseFolderParam
+        {
+            public int folder_id { get; set; }
+            public string pass_phrase { get; set; } 
+        }
+
+        private abstract class BaseFolderParam { }
     }
 }
