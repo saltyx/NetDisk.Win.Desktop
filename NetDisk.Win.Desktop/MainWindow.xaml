@@ -47,7 +47,11 @@
                     </TextBlock>
                     <TextBlock Grid.Row="1" Grid.Column="1" FontStyle="Italic" Foreground="DarkCyan" Text="{Binding created_at}" TextWrapping="Wrap"/>
                     <Button Width="40" Height="40" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
-                        Style="{DynamicResource MetroCircleButtonStyle}">
+                        Style="{DynamicResource MetroCircleButtonStyle}"
+                            Command="{Binding DataContext.ShowDetailedFolder, 
+                                RelativeSource={RelativeSource FindAncestor, 
+                                        AncestorType={x:Type ItemsControl}}}"
+                            CommandParameter="{Binding}">
                         <iconPacks:PackIconModern Width="20"
                                 Height="20"
                                 Kind="Settings" />
@@ -199,6 +203,25 @@
                     <Button Content="OK" FontSize="25" Style="{DynamicResource SquareButtonStyle}" Margin="8,20"
                            Command="{Binding Reset}"
                             CommandParameter="{Binding ElementName=passwordBox}"/>
+                </StackPanel>
+            </Controls:Flyout>
+
+            <Controls:Flyout x:Name="DetailedInfo" Header="{Binding ChoosenFolderName}" Position="Left"
+                             IsOpen="{Binding IsDetailedInfoOpen}"
+                             Width="400"
+                >
+                <StackPanel Orientation="Vertical">
+                    <controls:ToggleSwitch Header="Encryption state" HeaderFontFamily="Times New Roman" FontSize="20" OnLabel="Encrypted" OffLabel="Normal"
+                                           IsChecked="{Binding ChoosenFileEncryptionState}"
+                                           CheckedCommand="{Binding Encrypt}"
+                                           UnCheckedCommand="{Binding Decrypt}"
+                                           Margin="8,80,8,8"/>
+                    
+                    <Button FontSize="20" Content="Rename" Style="{DynamicResource SquareButtonStyle}"
+                            Margin="8" Command="{Binding RenameFolder}"/>
+                   
+                    <Button Content="Delete" FontSize="20" Foreground="Red" Style="{DynamicResource SquareButtonStyle}"
+                            Margin="8" Command="{Binding DeleteFolder}"/>
                 </StackPanel>
             </Controls:Flyout>
         </Controls:FlyoutsControl>

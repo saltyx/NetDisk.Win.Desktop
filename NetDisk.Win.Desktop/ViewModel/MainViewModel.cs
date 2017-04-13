@@ -22,17 +22,27 @@ namespace NetDisk.Win.Desktop.ViewModel
         public ObservableCollection<UserFileModel> FileData { get; set; }
         public ObservableCollection<KeyValuePair<int,string>> NavFolder { get; set; }
 
+        private bool _canceled = false;
+
         private bool _isOpen = false;
+        private bool _isDetailedOpen = false;
 
         private string _url;
         private string _username;
         private string _password;
+
+        private UserFileModel _choosenFile;
 
         private RelayCommand _changeFolder;
         private RelayCommand _back;
         private RelayCommand _newFolder;
         private RelayCommand _showSetting;
         private RelayCommand _reset;
+        private RelayCommand _showDetailedFolder;
+        private RelayCommand _deleteFolder;
+        private RelayCommand _renameFolder;
+        private RelayCommand _encrypt;
+        private RelayCommand _decrypt;
 
         public MainViewModel()
         {
@@ -108,6 +118,66 @@ namespace NetDisk.Win.Desktop.ViewModel
             }
         }
 
+        public ICommand ShowDetailedFolder
+        {
+            get
+            {
+                if (_showDetailedFolder == null)
+                {
+                    _showDetailedFolder = new RelayCommand(x => this.showDetailedFolder((UserFileModel)x));
+                }
+                return _showDetailedFolder;
+            }
+        }
+
+        public ICommand DeleteFolder
+        {
+            get
+            {
+                if (_deleteFolder == null)
+                {
+                    _deleteFolder = new RelayCommand(x => this.delete());
+                }
+                return _deleteFolder;
+            }
+        }
+
+        public ICommand RenameFolder
+        {
+            get
+            {
+                if (_renameFolder == null)
+                {
+                    _renameFolder = new RelayCommand(x => this.rename());
+                }
+                return _renameFolder;
+            }
+        }
+
+        public ICommand Encrypt
+        {
+            get
+            {
+                if (_encrypt == null)
+                {
+                    _encrypt = new RelayCommand(x => this.encrypt());
+                }
+                return _encrypt;
+            }
+        }
+
+        public ICommand Decrypt
+        {
+            get
+            {
+                if (_decrypt == null)
+                {
+                    _decrypt = new RelayCommand(x => this.decrypt());
+                }
+                return _decrypt;
+            }
+        }
+
         public bool IsSettingOpen
         {
             get
@@ -120,6 +190,61 @@ namespace NetDisk.Win.Desktop.ViewModel
                     return;
                 _isOpen = value;
                 OnPropertyChanged("IsSettingOpen");
+            }
+        }
+
+        public string ChoosenFolderName
+        {
+            get
+            {
+                if (_choosenFile == null)
+                {
+                    return "NULL";
+                }
+                return "Name: " + _choosenFile.file_name;
+            }
+        }
+
+        public bool IsDetailedInfoOpen
+        {
+            get
+            {
+                return _isDetailedOpen;
+            }
+            set
+            {
+                if (value == _isDetailedOpen)
+                    return;
+                _isDetailedOpen = value;
+                OnPropertyChanged("IsDetailedInfoOpen");
+            }
+        }
+
+        public bool ChoosenFileEncryptionState
+        {
+            get
+            {
+                if (_choosenFile == null)
+                    return false;
+                return _choosenFile.is_encrypted;
+            }
+            set
+            {
+                _choosenFile.is_encrypted = value;
+                OnPropertyChanged("ChoosenFileEncryptionState");
+            }
+        }
+
+        public UserFileModel ChoosenFile
+        {
+            get
+            {
+                return _choosenFile;
+            }
+            set
+            {
+                _choosenFile = value;
+                OnPropertyChanged("ChoosenFile");
             }
         }
 
@@ -277,6 +402,68 @@ namespace NetDisk.Win.Desktop.ViewModel
             controller.SetCancelable(false);
             initData(); 
             await controller.CloseAsync();
+        }
+
+        private void showDetailedFolder(UserFileModel file)
+        {
+            _choosenFile = file;
+            IsDetailedInfoOpen = true;
+            OnPropertyChanged("ChoosenFolderName");
+           
+        }
+
+        private async void encrypt()
+        {
+            Debug.WriteLine(_canceled);
+            if (_canceled)
+            {
+                _canceled = false;
+                return;
+            }
+            var result = await ((MetroWindow)Application.Current.MainWindow)
+                .ShowInputAsync("Please input the passphrase", "DO NOT FORGET YOUR PASSPHRASE!");
+            if (result == null || result.Length == 0)
+            {
+                _canceled = true;
+                ChoosenFileEncryptionState = false;
+                return;
+            }
+        }
+
+        private async void decrypt()
+        {
+            Debug.WriteLine(_canceled);
+
+            if (_canceled)
+            {
+                _canceled = false; return;
+            }
+            var result = await ((MetroWindow)Application.Current.MainWindow)
+                .ShowInputAsync("Please input the passphrase", "");
+            if (result == null || result.Length == 0)
+            {
+                _canceled = true;
+                ChoosenFileEncryptionState = true;
+                return;
+            }
+        }
+
+        private async void rename()
+        {
+            var result = await ((MetroWindow)Application.Current.MainWindow)
+                .ShowInputAsync("Please input the new name", "");
+            if (result == null || result.Length == 0)
+                return;
+        }
+
+        private async void delete()
+        {
+            MessageDialogResult msg = await ((MetroWindow)Application.Current.MainWindow)
+                .ShowMessageAsync("Delete the folder?", "You are trying to delete "+ChoosenFile.file_name, MessageDialogStyle.AffirmativeAndNegative);
+            
+            if ("Affirmative".Equals(msg.ToString())) {
+                IsDetailedInfoOpen = false;
+            }
         }
     }
 }
