@@ -14,8 +14,8 @@
         ResizeMode="CanResizeWithGrip"
         WindowTransitionsEnabled="False"
         WindowStartupLocation="CenterScreen">
-    
-    <Window.Resources>
+
+    <Controls:MetroWindow.Resources>
         <DataTemplate x:Key="FolderTemplate">
             <Border>
                 <Grid>
@@ -100,7 +100,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
         
-    </Window.Resources>
+    </Controls:MetroWindow.Resources>
     
     <Grid>
         <Grid.RowDefinitions>
@@ -109,7 +109,7 @@
             <RowDefinition Height="9*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="16*"/>
+            <ColumnDefinition Width="18*"/>
             <ColumnDefinition Width="16*"/>
             <ColumnDefinition Width="16*"/>
             <ColumnDefinition Width="18*"/>
@@ -118,22 +118,27 @@
         <TextBox Grid.Row="0" Grid.Column="0" Controls:TextBoxHelper.Watermark="Search" Controls:TextBoxHelper.ClearTextButton="True"
                  HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
                  />
-        <Button Grid.Row="0" Grid.Column="1" Margin="5,2,5,2" Style="{StaticResource AccentedSquareButtonStyle}"
+        <Button Grid.Row="0" Grid.Column="1" Margin="5,2,5,2"
+                Style="{StaticResource AccentedSquareButtonStyle}"
+                Command="{Binding NewFolder}"
                 >
-            <TextBlock Text="New Folder"/>
+            <TextBlock FontSize="20" Text="New Folder"/>
         </Button>
-        <Button Grid.Row="0" Grid.Column="2" Margin="5,2,5,2" Style="{StaticResource AccentedSquareButtonStyle}"
+        <Button Grid.Row="0" Grid.Column="2" Margin="5,2,5,2" 
+                Style="{StaticResource AccentedSquareButtonStyle}"
                 >
-            <TextBlock Text="Upload File"/>
+            <TextBlock FontSize="20" Text="Upload File"/>
         </Button>
-        <Button Grid.Row="0" Grid.Column="3" Margin="5,2,5,2" Style="{StaticResource AccentedSquareButtonStyle}"
+        <Button Grid.Row="0" Grid.Column="3" Margin="5,2,5,2" 
+                Style="{StaticResource AccentedSquareButtonStyle}"
                 >
-            <TextBlock Text="Account Info"/>
+            <TextBlock FontSize="20" Text="Account Info"/>
         </Button>
         <Button Grid.Row="0" Grid.Column="4" 
-                Style="{DynamicResource MetroCircleButtonStyle}">
-            <iconPacks:PackIconModern Width="20"
-                       Height="20"
+                Style="{DynamicResource MetroCircleButtonStyle}"
+                Command="{Binding ShowSetting}">
+            <iconPacks:PackIconModern Width="30"
+                       Height="30"
                        Kind="Settings" />
         </Button>
         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
@@ -176,4 +181,28 @@
                   ItemTemplate="{StaticResource FileTemplate}">
         </ListView>
     </Grid>
+    <Controls:MetroWindow.Flyouts>
+
+        <Controls:FlyoutsControl x:Name="SettingViewModel">
+            <Controls:Flyout x:Name="Setting" Header="Setting" Position="Right" IsOpen="{Binding IsSettingOpen}"
+                             Width="300"
+                >
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="URL" Foreground="Wheat" FontSize="25" Margin="8"/>
+                    <TextBox controls:TextBoxHelper.Watermark="your URL" FontSize="25" Margin="8"
+                             Text="{Binding Url}"/>
+                    <TextBlock Text="Username" Foreground="Wheat" FontSize="25" Margin="8"/>
+                    <TextBox controls:TextBoxHelper.Watermark="your username" FontSize="25"  Margin="8"
+                             Text="{Binding Username}"/>
+                    <TextBlock Text="Password" Foreground="Wheat" FontSize="25" Margin="8"/>
+                    <PasswordBox x:Name="passwordBox" controls:TextBoxHelper.Watermark="your password" FontSize="25"  Margin="8"/>
+                    <Button Content="OK" FontSize="25" Style="{DynamicResource SquareButtonStyle}" Margin="8,20"
+                           Command="{Binding Reset}"
+                            CommandParameter="{Binding ElementName=passwordBox}"/>
+                </StackPanel>
+            </Controls:Flyout>
+        </Controls:FlyoutsControl>
+
+    </Controls:MetroWindow.Flyouts>
+
 </Controls:MetroWindow>

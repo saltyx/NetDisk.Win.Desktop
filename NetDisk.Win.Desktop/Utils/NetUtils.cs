@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -67,11 +68,51 @@ namespace NetDisk.Win.Desktop.Utils
             }
         }
 
+        public static async Task<int> createNewFolder(string name, int fromId)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, String.Format(BASE_FOLDER_URL + "/create"));
+            request.Method = HttpMethod.Post;
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+            var data = new FolderParam
+            {
+                folder = new NewFolderParam
+                {
+                    folder_name = name,
+                    from_folder = fromId
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage result = await client.SendAsync(request);
+            if (result.IsSuccessStatusCode)
+            {
+                string content = await result.Content.ReadAsStringAsync();
+                var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
+                Debug.WriteLine(feedback.info, "info");
+                if (feedback.success == 200)
+                    return int.Parse(feedback.info);
+                return -1;
+            } else
+            {
+                return -1;
+            }
+        }
+
         private class SuccessFeedBack
         {
-            public string success { get; set; }
+            public int success { get; set; }
             public string info { get; set; }
         }
 
+        private class FolderParam
+        {
+            public NewFolderParam folder { get; set; }
+        }
+
+        private class NewFolderParam
+        {
+            public string folder_name { get; set; }
+            public int from_folder { get; set; }
+        }
     }
 }

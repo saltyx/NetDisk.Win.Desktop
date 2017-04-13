@@ -1,4 +1,7 @@
-﻿using NetDisk.Win.Desktop.Model;
+﻿using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using NetDisk.Win.Desktop.Model;
+using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,6 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace NetDisk.Win.Desktop.ViewModel
@@ -17,13 +22,21 @@ namespace NetDisk.Win.Desktop.ViewModel
         public ObservableCollection<UserFileModel> FileData { get; set; }
         public ObservableCollection<KeyValuePair<int,string>> NavFolder { get; set; }
 
+        private bool _isOpen = false;
+
+        private string _url;
+        private string _username;
+        private string _password;
+
         private RelayCommand _changeFolder;
-        private RelayCommand _changeToPreFolder;
-        private RelayCommand _changeToNextFolder;
         private RelayCommand _back;
+        private RelayCommand _newFolder;
+        private RelayCommand _showSetting;
+        private RelayCommand _reset;
 
         public MainViewModel()
         {
+            
             Data = new ObservableCollection<UserFileModel>();
             FolderData = new ObservableCollection<UserFileModel>();
             FileData = new ObservableCollection<UserFileModel>();
@@ -59,17 +72,115 @@ namespace NetDisk.Win.Desktop.ViewModel
             }
         }
 
+        public ICommand NewFolder
+        {
+            get
+            {
+                if (_newFolder == null)
+                {
+                    _newFolder = new RelayCommand(x => this.newFolder());
+                }
+                return _newFolder;
+            }
+        }
+
+        public ICommand ShowSetting
+        {
+            get
+            {
+                if (_showSetting == null)
+                {
+                    _showSetting = new RelayCommand(x => this.showSetting());
+                }
+                return _showSetting;
+            }
+        }
+
+        public ICommand Reset
+        {
+            get
+            {
+                if (_reset == null)
+                {
+                    _reset = new RelayCommand(x => this.resetDefaultSetting(x));
+                }
+                return _reset;
+            }
+        }
+
+        public bool IsSettingOpen
+        {
+            get
+            {
+                return _isOpen;
+            }
+            set
+            {
+                if (value.Equals(_isOpen))
+                    return;
+                _isOpen = value;
+                OnPropertyChanged("IsSettingOpen");
+            }
+        }
+
+        public string Url
+        {
+            get
+            {
+                return _url;
+            }
+            set
+            {
+                if (value == _url)
+                    return;
+                _url = value;
+                App.URL = _url;
+                OnPropertyChanged("Url");
+            }
+        }
+
+        public string Username
+        {
+            get
+            {
+                return _username;
+            }
+            set
+            {
+                if (value == _username)
+                    return;
+                _username = value;
+                OnPropertyChanged("Username");
+            }
+        }
+
+        public string Password
+        {
+            get
+            {
+                return _password;
+            }
+            set
+            {
+                if (value == _password)
+                    return;
+                _password = value;
+                OnPropertyChanged("Password");
+            }
+        }
+
         private async void initData()
         {
             Data = await Utils.NetUtils.GetRoot();
+            NavFolder.Clear();
             NavFolder.Add(App.GetCurrentFolder());
             spliteData();
             OnPropertyChanged("Data");
             OnPropertyChanged("FolderData");
             OnPropertyChanged("FileData");
             OnPropertyChanged("NavFolder");
+            OnPropertyChanged("IsSettingOpen");
         }
-        
         
         private async void changeFolder(UserFileModel file)
         {
@@ -104,6 +215,67 @@ namespace NetDisk.Win.Desktop.ViewModel
                     Debug.WriteLine("file", file.file_name);
                 }
             }
+        }
+
+        private async void newFolder()
+        {
+            var result = await ((MetroWindow)Application.Current.MainWindow).ShowInputAsync("Input the folder's name", "");
+            if (result == null || result.Length == 0)
+                return;
+            int currentFolder = NavFolder.ElementAt(NavFolder.Count - 1).Key;
+            int resultCode = await Utils.NetUtils.createNewFolder(result, currentFolder);
+            if (resultCode == -1)
+            {
+                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("", "Error");
+            } else
+            {
+                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("","Success!");
+                UserFileModel model = new UserFileModel();
+                model.file_name = result;
+                model.id = resultCode;
+                model.created_at = DateTime.Now.ToString();
+                FolderData.Add(model);
+                Data.Add(model);
+            }
+        }
+
+        private void showSetting()
+        {
+            IsSettingOpen = true;
+        }
+
+        private async void resetDefaultSetting(object x)
+        {
+            var passwordBox = x as PasswordBox;
+            Password = passwordBox.Password;
+            IsSettingOpen = false;
+            var mSetting = new MetroDialogSettings()
+            {
+                NegativeButtonText = "Cancel",
+                AnimateShow = false,
+                AnimateHide = false,
+                DialogTitleFontSize = 20,
+                DialogMessageFontSize = 16
+            };
+            var controller = await ((MetroWindow)Application.Current.MainWindow).ShowProgressAsync("Please wait...", "Connecting to the server...", settings: mSetting);
+            controller.SetIndeterminate();
+            controller.SetCancelable(true);
+            ServerBack back = await Utils.NetUtils.LoginAsync(Url + "/v1/login", Username, Password);
+            await controller.CloseAsync();
+            var conn = new SQLiteAsyncConnection(App.DB_NAME);
+            await conn.ExecuteAsync("Delete from SettingModel");
+            await conn.InsertAsync(new SettingModel
+            {
+                Token = back.Message,
+                URL = Url
+            });
+            App.TOKEN = back.Message;
+  
+            controller = await ((MetroWindow)Application.Current.MainWindow).ShowProgressAsync("Please wait...", "Refreshing", settings: mSetting);
+            controller.SetIndeterminate();
+            controller.SetCancelable(false);
+            initData();
+            await controller.CloseAsync();
         }
     }
 }
