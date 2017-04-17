@@ -6,11 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace NetDisk.Win.Desktop.ViewModel
@@ -43,6 +46,8 @@ namespace NetDisk.Win.Desktop.ViewModel
         private RelayCommand _renameFolder;
         private RelayCommand _encrypt;
         private RelayCommand _decrypt;
+        private RelayCommand _uploadFile;
+        private RelayCommand _downloadFile;
 
         public MainViewModel()
         {
@@ -175,6 +180,30 @@ namespace NetDisk.Win.Desktop.ViewModel
                     _decrypt = new RelayCommand(x => this.decrypt());
                 }
                 return _decrypt;
+            }
+        }
+
+        public ICommand Upload
+        {
+            get
+            {
+                if (_uploadFile == null)
+                {
+                    _uploadFile = new RelayCommand(x => this.upload());
+                }
+                return _uploadFile;
+            }
+        }
+
+        public ICommand Download
+        {
+            get
+            {
+                if (null == _downloadFile)
+                {
+                    _downloadFile = new RelayCommand(x => this.download((UserFileModel)x));
+                }
+                return _downloadFile;
             }
         }
 
@@ -350,17 +379,17 @@ namespace NetDisk.Win.Desktop.ViewModel
 
         private async void newFolder()
         {
-            var result = await ((MetroWindow)Application.Current.MainWindow).ShowInputAsync("Input the folder's name", "");
+            var result = await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowInputAsync("Input the folder's name", "");
             if (result == null || result.Length == 0)
                 return;
             int currentFolder = NavFolder.ElementAt(NavFolder.Count - 1).Key;
             int resultCode = await Utils.NetUtils.createNewFolder(result, currentFolder);
             if (resultCode == -1)
             {
-                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("", "Error");
+                await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("", "Error");
             } else
             {
-                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("","Success!");
+                await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("","Success!");
                 UserFileModel model = new UserFileModel();
                 model.file_name = result;
                 model.id = resultCode;
@@ -388,7 +417,7 @@ namespace NetDisk.Win.Desktop.ViewModel
                 DialogTitleFontSize = 20,
                 DialogMessageFontSize = 16
             };
-            var controller = await ((MetroWindow)Application.Current.MainWindow).ShowProgressAsync("Please wait...", "Connecting to the server...", settings: mSetting);
+            var controller = await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowProgressAsync("Please wait...", "Connecting to the server...", settings: mSetting);
             controller.SetIndeterminate();
             controller.SetCancelable(true);
             ServerBack back = await Utils.NetUtils.LoginAsync(Url + "/v1/login", Username, Password);
@@ -402,7 +431,7 @@ namespace NetDisk.Win.Desktop.ViewModel
             });
             App.TOKEN = back.Message;
   
-            controller = await ((MetroWindow)Application.Current.MainWindow).ShowProgressAsync("Please wait...", "Refreshing", settings: mSetting);
+            controller = await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowProgressAsync("Please wait...", "Refreshing", settings: mSetting);
             controller.SetIndeterminate();
             controller.SetCancelable(false);
             initData(); 
@@ -422,13 +451,12 @@ namespace NetDisk.Win.Desktop.ViewModel
 
         private async void encrypt()
         {
-            Debug.WriteLine(_canceled);
             if (_canceled)
             {
                 _canceled = false;
                 return;
             }
-            var result = await ((MetroWindow)Application.Current.MainWindow)
+            var result = await ((MetroWindow)System.Windows.Application.Current.MainWindow)
                 .ShowInputAsync("Please input the passphrase", "DO NOT FORGET YOUR PASSPHRASE!");
             if (result == null || result.Length == 0)
             {
@@ -443,19 +471,17 @@ namespace NetDisk.Win.Desktop.ViewModel
                 IsDetailedInfoOpen = false;
             } else
             {
-                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ERROR", "An error occurred");
+                await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("ERROR", "An error occurred");
             }
         }
 
         private async void decrypt()
         {
-            Debug.WriteLine(_canceled);
-
             if (_canceled)
             {
                 _canceled = false; return;
             }
-            var result = await ((MetroWindow)Application.Current.MainWindow)
+            var result = await ((MetroWindow)System.Windows.Application.Current.MainWindow)
                 .ShowInputAsync("Please input the passphrase", "");
             if (result == null || result.Length == 0)
             {
@@ -470,13 +496,13 @@ namespace NetDisk.Win.Desktop.ViewModel
                 IsDetailedInfoOpen = false;
             } else
             {
-                await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ERROR", "An error occurred");
+                await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("ERROR", "An error occurred");
             }
         }
 
         private async void rename()
         {
-            var result = await ((MetroWindow)Application.Current.MainWindow)
+            var result = await ((MetroWindow)System.Windows.Application.Current.MainWindow)
                 .ShowInputAsync("Please input the new name", "");
             if (result == null || result.Length == 0)
                 return;
@@ -490,7 +516,7 @@ namespace NetDisk.Win.Desktop.ViewModel
 
         private async void delete()
         {
-            MessageDialogResult msg = await ((MetroWindow)Application.Current.MainWindow)
+            MessageDialogResult msg = await ((MetroWindow)System.Windows.Application.Current.MainWindow)
                 .ShowMessageAsync("Delete the folder?", "You are trying to delete "+ChoosenFile.file_name, MessageDialogStyle.AffirmativeAndNegative);
             
             if ("Affirmative".Equals(msg.ToString())) {
@@ -501,9 +527,53 @@ namespace NetDisk.Win.Desktop.ViewModel
                     refresh();
                 } else
                 {
-                    await ((MetroWindow)Application.Current.MainWindow).ShowMessageAsync("ERROR","An error occurred");
+                    await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("ERROR","An error occurred");
                 }
 
+            }
+        }
+
+        private async void upload()
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                Stream stream = dialog.OpenFile();
+                if (stream == null) return;
+                using (stream)
+                {
+                    FileInfo fileInfo = new FileInfo(dialog.FileName);
+                    
+                    var length = string.Format("{0}",fileInfo.Length);
+                    var streamContent = new StreamContent(stream);
+                    var lengthContent = new StringContent(length, Encoding.UTF8);
+                    int result = await Utils.NetUtils.uplaodFile(streamContent, lengthContent,NavFolder.Last().Key,
+                        fileInfo.Name);
+                    if (result == -1)
+                    {
+                        showAlertDialog("UPLAOD FAILED");
+                    } else
+                    {
+                        showSuccessDialog("");
+                    }
+                }
+            }
+        }
+        
+        private async void download(UserFileModel file)
+        {
+            Stream stream = await Utils.NetUtils.downloadFile(file.id);
+            if (null == stream) return;
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            DialogResult result = dialog.ShowDialog();
+            if (DialogResult.OK == result)
+            {
+                string folderName = dialog.SelectedPath;
+                string fullFilePath = string.Format("{0}{1}", folderName, file.file_name);
+                Stream temp = File.Create(fullFilePath);
+                stream.CopyTo(temp);
+                temp.Dispose();
+                showSuccessDialog("Downloaded!");
             }
         }
 
@@ -517,6 +587,16 @@ namespace NetDisk.Win.Desktop.ViewModel
         private void log(object obj)
         {
             Debug.WriteLine(obj);
+        }
+        
+        private async void showAlertDialog(string content)
+        {
+            await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("An error occured", content);
+        }
+
+        private async void showSuccessDialog(string content)
+        {
+            await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("SUCCESS!", content);
         }
     }
 }

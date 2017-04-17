@@ -90,6 +90,10 @@
                                               Kind="Share"/>
                     <Button Width="40" Height="40" Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="2"
                             VerticalAlignment="Center" HorizontalAlignment="Left"
+                            Command="{Binding DataContext.Download, 
+                                RelativeSource={RelativeSource FindAncestor, 
+                                        AncestorType={x:Type ItemsControl}}}"
+                            CommandParameter="{Binding}"
                         Style="{DynamicResource MetroCircleButtonStyle}">
                         <iconPacks:PackIconModern Width="20"
                                 Height="20"
@@ -130,6 +134,7 @@
         </Button>
         <Button Grid.Row="0" Grid.Column="2" Margin="5,2,5,2" 
                 Style="{StaticResource AccentedSquareButtonStyle}"
+                Command="{Binding Upload}"
                 >
             <TextBlock FontSize="20" Text="Upload File"/>
         </Button>

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -17,6 +18,9 @@ namespace NetDisk.Win.Desktop.Utils
     {
         private static readonly HttpClient client;
         public static readonly string BASE_FOLDER_URL = App.URL + "/v1/folder";
+        public static readonly string BASE_UPLAOD_URL = App.URL + "/v1/upload";
+        public static readonly string BASE_FILE_URL = App.URL + "/v1/file";
+
         static NetUtils()
         {
             client = new HttpClient();
@@ -210,6 +214,44 @@ namespace NetDisk.Win.Desktop.Utils
                 return false;
             }
             return false;
+        }
+
+        public static async Task<int> uplaodFile(StreamContent fileStreamContent, StringContent fileSizeContent, int fromFolderId, string fileName)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, string.Format("{0}/{1}", BASE_UPLAOD_URL, fromFolderId));
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+            using (var content = new MultipartFormDataContent())
+            {
+                content.Add(fileStreamContent, "file", fileName);
+                content.Add(fileSizeContent,"filesize");
+                request.Content = content;
+                using (var message = await client.SendAsync(request))
+                {
+                    if (message.IsSuccessStatusCode)
+                    {
+                        var result = await message.Content.ReadAsStringAsync();
+                        var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(result);
+                        if (feedback.success == 200)
+                        {
+                            return int.Parse(feedback.info);
+                        }
+                    }
+                    return -1;
+                }
+            }
+        }
+
+        public static async Task<Stream> downloadFile(int id)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, 
+                string.Format("{0}/{1}",BASE_FILE_URL, id));
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+            HttpResponseMessage result = await client.SendAsync(request);
+            if (result.IsSuccessStatusCode)
+            {
+                return await result.Content.ReadAsStreamAsync();
+            }
+            return null;
         }
 
         private class SuccessFeedBack
