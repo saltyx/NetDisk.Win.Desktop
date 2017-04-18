@@ -17,9 +17,9 @@ namespace NetDisk.Win.Desktop.Utils
     public class NetUtils
     {
         private static readonly HttpClient client;
-        public static readonly string BASE_FOLDER_URL = App.URL + "/v1/folder";
-        public static readonly string BASE_UPLAOD_URL = App.URL + "/v1/upload";
-        public static readonly string BASE_FILE_URL = App.URL + "/v1/file";
+        public static readonly string BASE_FOLDER_URL = App.URL + "/api/v1/folder";
+        public static readonly string BASE_UPLAOD_URL = App.URL + "/api/v1/upload";
+        public static readonly string BASE_FILE_URL = App.URL + "/api/v1/file";
 
         static NetUtils()
         {

@@ -555,6 +555,7 @@ namespace NetDisk.Win.Desktop.ViewModel
                     } else
                     {
                         showSuccessDialog("");
+                        refresh();
                     }
                 }
             }
