@@ -33,6 +33,7 @@ namespace NetDisk.Win.Desktop.ViewModel
         private string _url;
         private string _username;
         private string _password;
+        private string _queryText;
 
         private UserFileModel _choosenFile;
 
@@ -328,6 +329,23 @@ namespace NetDisk.Win.Desktop.ViewModel
             }
         }
 
+        public string QueryText
+        {
+            get
+            {
+                return _queryText;
+            }
+            set
+            {
+                if (value == _queryText)
+                    return;
+                _queryText = value;
+                log(_queryText);
+                showSearchResult(_queryText);
+                OnPropertyChanged("QueryText");
+            }
+        }
+
         private async void initData()
         {
             App.InitData();
@@ -546,9 +564,16 @@ namespace NetDisk.Win.Desktop.ViewModel
                     
                     var length = string.Format("{0}",fileInfo.Length);
                     var streamContent = new StreamContent(stream);
+                    var fileName = fileInfo.Name;
+                    streamContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+                    {
+                        Name = "\"file\"",
+                        FileName = string.Format("{0}", fileName)// fileName
+                    };
                     var lengthContent = new StringContent(length, Encoding.UTF8);
                     int result = await Utils.NetUtils.uplaodFile(streamContent, lengthContent,NavFolder.Last().Key,
                         fileInfo.Name);
+                    log(fileInfo.Name);
                     if (result == -1)
                     {
                         showAlertDialog("UPLAOD FAILED");
@@ -582,6 +607,18 @@ namespace NetDisk.Win.Desktop.ViewModel
         {
             int id = NavFolder.Last().Key;
             Data = await Utils.NetUtils.GetFilesAndFoldersById(id);
+            spliteData();
+        }
+
+        private async void showSearchResult(string queryText)
+        {
+            if (null == queryText || queryText.Equals(""))
+            {
+                //show last value
+                refresh();
+                return;
+            }
+            Data = await Utils.NetUtils.query(queryText);
             spliteData();
         }
 

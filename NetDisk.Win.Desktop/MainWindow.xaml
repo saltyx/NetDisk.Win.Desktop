@@ -123,8 +123,10 @@
             <ColumnDefinition Width="18*"/>
             <ColumnDefinition Width="5*"/>
         </Grid.ColumnDefinitions>
-        <TextBox Grid.Row="0" Grid.Column="0" Controls:TextBoxHelper.Watermark="Search" Controls:TextBoxHelper.ClearTextButton="True"
+        <TextBox Grid.Row="0" Grid.Column="0" Controls:TextBoxHelper.Watermark="Search" 
+                 Controls:TextBoxHelper.ClearTextButton="True"
                  HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                 Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
                  />
         <Button Grid.Row="0" Grid.Column="1" Margin="5,2,5,2"
                 Style="{StaticResource AccentedSquareButtonStyle}"

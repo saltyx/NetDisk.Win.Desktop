@@ -20,6 +20,7 @@ namespace NetDisk.Win.Desktop.Utils
         public static readonly string BASE_FOLDER_URL = App.URL + "/api/v1/folder";
         public static readonly string BASE_UPLAOD_URL = App.URL + "/api/v1/upload";
         public static readonly string BASE_FILE_URL = App.URL + "/api/v1/file";
+        public static readonly string BASE_SEARCH_URL = App.URL + "/api/v1/search";
 
         static NetUtils()
         {
@@ -220,10 +221,13 @@ namespace NetDisk.Win.Desktop.Utils
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, string.Format("{0}/{1}", BASE_UPLAOD_URL, fromFolderId));
             request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+            
             using (var content = new MultipartFormDataContent())
             {
-                content.Add(fileStreamContent, "file", fileName);
+                content.Add(fileStreamContent);
                 content.Add(fileSizeContent,"filesize");
+                content.Add(new StringContent(fileName),"filename");
+                log(content.Headers.ContentDisposition);
                 request.Content = content;
                 using (var message = await client.SendAsync(request))
                 {
@@ -250,6 +254,27 @@ namespace NetDisk.Win.Desktop.Utils
             if (result.IsSuccessStatusCode)
             {
                 return await result.Content.ReadAsStreamAsync();
+            }
+            return null;
+        }
+
+        public static async Task<ObservableCollection<UserFileModel>> query(string queryText)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get,
+                BASE_SEARCH_URL+"/"+queryText);
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+            HttpResponseMessage response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
+                if (200 == feedback.success)
+                {
+                    return JsonConvert.DeserializeObject<ObservableCollection<UserFileModel>>(feedback.info);
+                } else
+                {
+                    return null;
+                }
             }
             return null;
         }
@@ -289,5 +314,10 @@ namespace NetDisk.Win.Desktop.Utils
         }
 
         private abstract class BaseFolderParam { }
+
+        private static void log(object obj)
+        {
+            Debug.WriteLine(obj);
+        }
     }
 }
