@@ -279,6 +279,34 @@ namespace NetDisk.Win.Desktop.Utils
             return null;
         }
 
+        public static async Task<bool> shareFile(int id)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, string.Format("{0}/{1}", BASE_FILE_URL, "share"));
+            request.Headers.Add("Authorization", "Token token=" + App.TOKEN);
+
+            var data = new FileParam
+            {
+                file = new ShareFileParam
+                {
+                    id = id
+                }
+            };
+
+            string jsonData = JsonConvert.SerializeObject(data);
+            request.Content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                var feedback = JsonConvert.DeserializeObject<SuccessFeedBack>(content);
+                if (200 == feedback.success)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private class SuccessFeedBack
         {
             public int success { get; set; }
@@ -288,6 +316,11 @@ namespace NetDisk.Win.Desktop.Utils
         private class FolderParam
         {
             public BaseFolderParam folder { get; set; }
+        }
+
+        private class FileParam
+        {
+            public BaseFileParam file { get; set; }
         }
 
         private class NewFolderParam : BaseFolderParam
@@ -313,7 +346,14 @@ namespace NetDisk.Win.Desktop.Utils
             public string pass_phrase { get; set; } 
         }
 
+        private class ShareFileParam : BaseFileParam
+        {
+            public int id { get; set; }
+        }
+
         private abstract class BaseFolderParam { }
+
+        private abstract class BaseFileParam { }
 
         private static void log(object obj)
         {

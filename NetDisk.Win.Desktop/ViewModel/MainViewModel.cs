@@ -49,6 +49,7 @@ namespace NetDisk.Win.Desktop.ViewModel
         private RelayCommand _decrypt;
         private RelayCommand _uploadFile;
         private RelayCommand _downloadFile;
+        private RelayCommand _shareFile;
 
         public MainViewModel()
         {
@@ -208,6 +209,18 @@ namespace NetDisk.Win.Desktop.ViewModel
             }
         }
 
+        public ICommand Share
+        {
+            get
+            {
+                if (null == _shareFile)
+                {
+                    _shareFile = new RelayCommand(x => this.share((UserFileModel)x)); 
+                }
+                return _shareFile;
+            }
+        }
+
         public bool IsSettingOpen
         {
             get
@@ -265,6 +278,7 @@ namespace NetDisk.Win.Desktop.ViewModel
             }
             set
             {
+                if (null == _choosenFile) return;
                 _choosenFile.is_encrypted = value;
                 OnPropertyChanged("ChoosenFileEncryptionState");
             }
@@ -627,6 +641,25 @@ namespace NetDisk.Win.Desktop.ViewModel
             Debug.WriteLine(obj);
         }
         
+        private async void share(UserFileModel file)
+        {
+            bool result = await Utils.NetUtils.shareFile(file.id);
+            if (result)
+            {
+                MessageDialogResult msg = await ((MetroWindow)System.Windows.Application.Current.MainWindow)
+                .ShowMessageAsync("Success!", "已分享，链接为"+App.URL+"/shared/"+file.id + " 点击确认复制链接", MessageDialogStyle.AffirmativeAndNegative);
+
+                if ("Affirmative".Equals(msg.ToString()))
+                {
+                    System.Windows.Forms.Clipboard.SetDataObject(App.URL + "/shared/" + file.id);
+                }
+            }
+            else
+            {
+                showAlertDialog("分享失败！");
+            }
+        }
+
         private async void showAlertDialog(string content)
         {
             await ((MetroWindow)System.Windows.Application.Current.MainWindow).ShowMessageAsync("An error occured", content);
