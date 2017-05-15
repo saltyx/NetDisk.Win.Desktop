@@ -29,7 +29,7 @@ namespace NetDisk.Win.Desktop.ViewModel
 
         private bool _isOpen = false;
         private bool _isDetailedOpen = false;
-
+         
         private string _url;
         private string _username;
         private string _password;
